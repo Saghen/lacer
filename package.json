@@ -1,7 +1,9 @@
 {
   "name": "laco",
-  "private": true,
+  "version": "2.0.0-rc1",
   "description": "Simple and powerful state management for React and Inferno",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
   "repository": "https://github.com/deamme/laco.git",
   "author": "Deam Hansen",
   "license": "MIT",
@@ -10,11 +12,19 @@
     "updated": "lerna updated",
     "bootstrap": "lerna bootstrap",
     "publish": "lerna publish",
-    "build": "lerna run build",
-    "test": "lerna run test"
+    "build": "tsc",
+    "prepublish": "rimraf dist && tsc",
+    "test": "ts-node node_modules/tape/bin/tape tests/**/*.ts"
   },
   "devDependencies": {
     "lerna": "^3.1.4",
-    "typescript": "^3.0.1"
+    "@types/node": "^9.4.6",
+    "rimraf": "^2.6.2",
+    "tape": "^4.9.1",
+    "ts-node": "^7.0.1",
+    "typescript": "^4.0.5"
+  },
+  "dependencies": {
+    "immer": "^7.0.14"
   }
 }
