@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://i.imgur.com/bAoXY1n.png" width="80%">
+  <img src="https://i.imgur.com/oT8EBAg.png" width="80%">
 </p>
 
 # Lacer
