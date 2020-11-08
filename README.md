@@ -2,9 +2,9 @@
   <img src="https://i.imgur.com/jKG9XYF.png" width="80%">
 </p>
 
-# Laco
-[![npm version](https://badge.fury.io/js/laco.svg)](https://badge.fury.io/js/laco)
-[![travis](https://travis-ci.org/deamme/laco.svg?branch=master)](https://travis-ci.org/deamme/laco)
+# Lacer
+[![npm version](https://badge.fury.io/js/laco.svg)](https://badge.fury.io/js/lacer)
+[![travis](https://travis-ci.org/deamme/laco.svg?branch=master)](https://travis-ci.org/deamme/lacer)
 
 Very simple and powerful state management solution for React and Inferno.
 
@@ -174,4 +174,7 @@ test('counter', (t) => {
 ## Credits
 Heavily inspired by:
 - [Unstated](https://github.com/jamiebuilds/unstated)
-- [Redux](https://github.com/reactjs/redux)
+- [Laco](https://github.com/reactjs/redux)
+
+Special Thanks
+- [Austin McCalley](https://github.com/austinmccalley) for the name

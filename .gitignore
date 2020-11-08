@@ -3,3 +3,4 @@ dist
 yarn.lock
 package-lock.json
 .fusebox
+coverage
