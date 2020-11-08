@@ -27,8 +27,8 @@ import { Store } from 'lacer'
 const CounterStore = new Store({ count: 0 })
 
 // Implementing some actions to update the store
-const increment = () => CounterStore.set((state) => ({ count: state.count + 1 }))
-const decrement = () => CounterStore.set((state) => ({ count: state.count - 1 }))
+const increment = () => CounterStore.set((state) => state.count++)
+const decrement = () => CounterStore.set((state) => state.count--)
 
 increment()
 expect(CounterStore.get().count).toBe(1) // Success
