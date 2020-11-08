@@ -1,11 +1,11 @@
 {
   "name": "lacer",
-  "version": "0.0.1-rc1",
-  "description": "Simple and powerful state management for React and Inferno",
+  "version": "0.0.1-rc2",
+  "description": "Simple and powerful state management for any application",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
-  "repository": "https://github.com/deamme/laco.git",
-  "author": "Deam Hansen",
+  "repository": "https://github.com/Saghen/lese.git",
+  "author": "Liam Dyer",
   "license": "MIT",
   "scripts": {
     "clean": "lerna clean",
