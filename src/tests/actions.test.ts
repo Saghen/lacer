@@ -1,7 +1,20 @@
 import { ICounterState, IShallowState } from './helpers/types'
 import { Store } from '../index'
 
-test('CounterStore actions', () => {
+test('CounterStore simple actions', () => {
+  // Creating a new store with an initial state { count: 0 }
+  const CounterStore = new Store<ICounterState>({ count: 0 }, 'Counter')
+
+  // Implementing an action to update the store
+  const increment = () => CounterStore.set((prev) => prev.count++, 'Increment')
+
+  expect(CounterStore.get().count).toBe(0)
+
+  increment()
+  expect(CounterStore.get().count).toBe(1)
+})
+
+test('CounterStore advanced actions', () => {
   // Creating a new store with an initial state { count: 0 }
   const CounterStore = new Store<ICounterState>({ count: 0 }, 'Counter')
 
