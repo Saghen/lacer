@@ -1,30 +1,27 @@
 <p align="center">
-  <img src="https://i.imgur.com/jKG9XYF.png" width="80%">
+  <img src="https://i.imgur.com/GA1QvSx.png" width="80%">
 </p>
 
 # Lacer
-[![npm version](https://badge.fury.io/js/laco.svg)](https://badge.fury.io/js/lacer)
-[![travis](https://travis-ci.org/deamme/laco.svg?branch=master)](https://travis-ci.org/deamme/lacer)
+<p align="center">
+  <img src="https://img.shields.io/static/v1?label=build&message=passing&color=success&style=flat-square">
+  <img src="https://img.shields.io/static/v1?label=version&message=0.0.1-rc1&color=blue&style=flat-square">
+</p>
 
-Very simple and powerful state management solution for React and Inferno.
+Very simple and powerful state management solution for any application built on Laco and Immer.
 
 Set up your stores and subscribe to them. Easy as that!
 
-[Check out the introductory blog post](https://medium.com/@Deam/laco-intro-5db2077ec829).
-
-`npm install laco`
-
-`npm install laco-inferno` or `npm install laco-react`
+`npm install lacer`
 
 ## Summary
 - :rocket: Simple to use
-- :tada: Lightweight (under 1kb in size)
-- :sparkles: Partial [Redux DevTools Extension](https://github.com/zalmoxisus/redux-devtools-extension) support (time travel)
+- :tada: Lightweight (<2kbs gzipped)
+- :sparkles: Partial [Redux DevTools Extension](https://github.com/zalmoxisus/redux-devtools-extension) support (time travel thanks to Laco)
 
 ## Example
 ```javascript
-import { Store } from 'laco'
-import { Subscribe } from 'laco-react' // or 'laco-inferno'
+import { Store } from 'lacer'
 
 // Creating a new store with an initial state { count: 0 }
 const CounterStore = new Store({ count: 0 })
@@ -33,28 +30,12 @@ const CounterStore = new Store({ count: 0 })
 const increment = () => CounterStore.set((state) => ({ count: state.count + 1 }))
 const decrement = () => CounterStore.set((state) => ({ count: state.count - 1 }))
 
-const Counter = () => (
-  <Subscribe to={[CounterStore]}>
-    {(state) => (
-      <div>
-        <button onClick={decrement}>-</button>
-        <span>{state.count}</span>
-        <button onClick={increment}>+</button>
-      </div>
-    )}
-  </Subscribe>
-)
+increment()
+expect(CounterStore.get().count).toBe(1) // Success
+
+decrement()
+expect(CounterStore.get().count).toBe(0) // Success
 ```
-
-For more examples check the examples folder.
-
-Following commands are available for each example project:
-
-`npm run start:dev`
-
-`npm run start:prod`
-
-`npm run test`
 
 ## Redux DevTools Extension
 Check out [Redux DevTools Extension](https://github.com/zalmoxisus/redux-devtools-extension).
@@ -68,54 +49,61 @@ Check out [React Native Debugger](https://github.com/jhen0409/react-native-debug
 Works as you would expect :)!
 
 ## API
-### `Store(initialState: Object, name?: String)`
-```javascript
+### `Store<T>(initialState: T, name?: string)`
+```typescript
 // Initializing a new store with an initial state and a name:
-const NewStore = Store({ count: 0 }, "Counter")
+interface INewStore = {
+  count: number
+}
+
+const NewStore = Store<INewStore>({ count: 0 }, "Counter")
 ```
 The name is optional and is used to get an overview of action and store relationship in Redux DevTools Extension. Action names for the Store will now show up as `Counter - ${actionType}` in DevTools Extension where as before only `${actionType}` was shown.
 
-### `Store.get()`
+### `Store.get(): T`
 ```javascript
 // Getting the state of the store
 Store.get()
 ```
 Returns an object which could be something like `{ count: 0 }` following the example.
 
-### `Store.set(state: Function, info?: String)`
+### `Store.set(state: SetStateFunc, info?: string)`
+`type SetStateFunc<T> = (state: Draft<T> => void)`
+Technically, this function does allow any value to be returned to allow patterns similar to what you'll see in the example where the assignment is returned. **However, the return value is ignored.**
+
+T inherits from the generic specified during the initalization of the Store. The SetStateFunc provides a `Draft<T>` from Immer. For more information on how to use Immer, [check it out here](https://immerjs.github.io/immer/docs/introduction).
 ```javascript
 // Setting a new state and passing an optional action name "increment"
-Store.set((state) => { count: state.count + 1 }, "increment")
+Store.set((state) => (state.count++), "increment")
 ```
 
-### `Store.replace(state: Function, info?: String)`
-Immutability is taking care of to a certain extent behind the scenes with the spread operator with `Store.set()` but you might want more control over the state. You can do this by using `Store.replace()` like so:
+### `Store.replace(state: ReplaceStateFunc<, info?: String)`
+`type ReplaceStateFunc<T> = (state: T) => T`
+
+T inherits from the generic specified during the initalization of the Store. This function allows you to completely replace the object used in the store and fires all subscription handlers afterwards regardless of the properties they listen to.
 ```javascript
 // Setting a new state and passing an optional action name "increment"
 Store.replace((state) => { /* return modified state */}, "increment")
 ```
 
-### `Store.setCondition(condition: Function)`
+### `Store.setMiddleware(middleware: MiddlewareFunc)`
+`type MiddlewareFunc<T> = (state: T, actionType?: string) => T | boolean`
+
+A middleware will intercept a state change (set or replace) before it is made. If the middleware returns false, the change is discarded. If it returns true, the next middleware will run. If it returns an object of the same type as the Store, the state will be replaced with that type.
+
+Note: You can mutate this object freely since it is generated by Immer.
 ```javascript
 // Setting a condition to prevent count from going below 0
 // and a special case for `SudoDecrement` action which CAN make count go below 0
-CounterStore.setCondition((state, actiontype) => {
-  if (state.count >= 0) {
-    return state
-  } else if (actionType === 'SudoDecrement') {
-    return state
-  }
-  // Otherwise return nothing which does NOT change any state
-})
+CounterStore.setMiddleware((state, actiontype) => state.count < 0 && actionType === 'SudoDecrement')
 ```
-Setting a condition on a store will make every `Store.set()` call go through the condition first.
 
 ### `Store.reset()`
 ```javascript
 // Resets the store to initial state
 Store.reset()
 ```
-A good practice when testing is to call `reset()` on a store before using the store in a test. This takes care of some edge cases that you might run into. The reason for this is that Laco is using a global object behind the scenes to store all of your stores states into one big object. Redux also operates on one global object which makes time travel possible.
+Reset will bring back the original state of the Store when it was initialized. This is stored in `Store.initialState`.
 
 ### `Store.dispatch(value: any, info: String)`
 ```javascript
@@ -126,55 +114,39 @@ You might want to dispatch an action that is associated with a certain store but
 
 ### `dispatch(value: any, info: String)`
 ```javascript
-import { dispatch } from 'laco'
+import { dispatch } from 'lacer'
 
 // Dispatching a global action that does not change any state
 dispatch(changeLocation(), "Location change")
 ```
 You might want to dispatch a global action that is **NOT** associated with any store. The action will in this case just be shown as `Location change`.
 
-### `<Subscribe />`
-#### Props
-- `to` - Array of stores you want to subscribe to
-```javascript
-<Subscribe to={[CounterStore]}>
-  {({ count }) => (
-    <div>
-      <button onClick={decrement}>-</button>
-      <span>{count}</span>
-      <button onClick={increment}>+</button>
-    </div>
-  )}
-</Subscribe>
-```
-The `Subscribe` component is making use of the new render prop idea. Related articles:
-- [Apollo Query Component](https://dev-blog.apollodata.com/whats-next-for-react-apollo-4d41ba12c2cb)
-- [Use a render prop!](https://cdb.reacttraining.com/use-a-render-prop-50de598f11ce)
-
 ## Testing
-Testing using [tape](https://github.com/substack/tape):
+Testing using [jest](https://github.com/facebook/jest):
 ```javascript
-import * as test from 'tape'
-import { CounterStore, increment, decrement } from './CounterStore'
+import { ICounterState } from '/types'
+import { Store } from 'lacer'
 
-test('counter', (t) => {
-  CounterStore.reset()
-  t.assert(CounterStore.get().count === 0);
+test('CounterStore simple actions', () => {
+  // Creating a new store with an initial state { count: 0 }
+  const CounterStore = new Store<ICounterState>({ count: 0 }, 'Counter')
+
+  // Implementing an action to update the store
+  const increment = () => CounterStore.set((prev) => prev.count++, 'Increment')
+
+  expect(CounterStore.get().count).toBe(0)
 
   increment()
-  t.assert(CounterStore.get().count === 1);
-
-  decrement()
-  t.assert(CounterStore.get().count === 0);
-
-  t.end()
+  expect(CounterStore.get().count).toBe(1)
 })
 ```
 
 ## Credits
-Heavily inspired by:
-- [Unstated](https://github.com/jamiebuilds/unstated)
-- [Laco](https://github.com/reactjs/redux)
+Based on:
+- [Laco](https://github.com/deamme/laco)
+
+Depends on:
+- [Immer](https://github.com/immerjs/immer)
 
 Special Thanks
 - [Austin McCalley](https://github.com/austinmccalley) for the name
