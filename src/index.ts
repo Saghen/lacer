@@ -4,7 +4,7 @@ enablePatches()
 let devTools
 
 if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
-  console.log(`You're currently using a development version of Immco`)
+  console.log(`You're currently using a development version of Lacer`)
   if ((window as any).__REDUX_DEVTOOLS_EXTENSION__) {
     devTools = (window as any).__REDUX_DEVTOOLS_EXTENSION__.connect()
     setTimeout(() => devTools.init(STORE), 200)
@@ -18,15 +18,27 @@ interface IGlobalState {
 let STORE: IGlobalState = {}
 let COUNTER = 0
 
+// Set & Replace Types
 export type SetStateFunc<T> = (state: Draft<T>) => any
 export type ReplaceStateFunc<T> = (state: T) => T
-export type MiddlewareFunc<T> = (state: T, actionType?: string) => T | boolean
 
+// Middleware Types
+export type MiddlewareFunc<T> = (
+  state: Draft<T>,
+  actionType?: string
+) => boolean | undefined
+export interface IMiddleware<T> {
+  func: MiddlewareFunc<T>
+  properties?: string[]
+}
+
+// Listener Types
 export type ListenerFunc<T> = (
   state: T,
   oldState: T,
   changes?: string[]
 ) => void
+export type ListenerUnsubscriberFunc = () => void
 export interface IListener<T> {
   func: ListenerFunc<T>
   properties?: string[]
@@ -38,7 +50,7 @@ export class Store<T> {
   listeners: IListener<T>[] = []
   devTools
   initialState: T
-  middleware: MiddlewareFunc<T>[] = []
+  middleware: IMiddleware<T>[] = []
 
   constructor(initialState: T, name?: string) {
     if (name) this.name = name
@@ -62,7 +74,7 @@ export class Store<T> {
     return <T>STORE[this.idx]
   }
 
-  set(setState: SetStateFunc<T>, actionType?: string) {
+  set(setState: SetStateFunc<T>, actionType?: string): boolean {
     let changes = []
     const currentState = this.get()
     let newState = produce<T>(
@@ -72,12 +84,21 @@ export class Store<T> {
       },
       (patches) => changes.push(...patches)
     )
-    for (const middleware of this.middleware) {
-      const middlewareResult = middleware(newState, actionType)
-      if (middlewareResult === false) return false
-      if (middlewareResult === true) continue
-      newState = middlewareResult
-    }
+
+    let wasMiddlewareSuccessful = true
+    newState = produce<T>(
+      newState,
+      (draft) => {
+        const middlewareResult = this.runMiddleware(draft, changes, actionType)
+        if (middlewareResult === false) {
+          wasMiddlewareSuccessful = false
+          return
+        }
+      },
+      (patches) => changes.push(...patches)
+    )
+
+    if (!wasMiddlewareSuccessful) return false
 
     if (
       typeof window !== 'undefined' &&
@@ -92,17 +113,26 @@ export class Store<T> {
     STORE[this.idx] = newState
 
     this.runListeners(newState, currentState, changes)
+
+    return true
   }
 
-  replace(replaceState: ReplaceStateFunc<T>, actionType?: string) {
+  replace(replaceState: ReplaceStateFunc<T>, actionType?: string): boolean {
     const currentState = this.get()
     let newState = replaceState(currentState)
-    for (const middleware of this.middleware) {
-      const middlewareResult = middleware(newState, actionType)
-      if (middlewareResult === false) return false
-      if (middlewareResult === true) continue
-      newState = middlewareResult
-    }
+
+    let wasMiddlewareSuccessful = true
+    newState = produce<T>(newState, (draft) => {
+      for (const middleware of this.middleware) {
+        const middlewareResult = middleware.func(draft, actionType)
+        if (middlewareResult === false) {
+          wasMiddlewareSuccessful = false
+          return
+        }
+      }
+    })
+
+    if (!wasMiddlewareSuccessful) return false
 
     if (
       typeof window !== 'undefined' &&
@@ -117,35 +147,80 @@ export class Store<T> {
     STORE[this.idx] = newState
 
     this.listeners.forEach((listener) => listener.func(newState, currentState))
+
+    return true
   }
 
-  addMiddleware(func: MiddlewareFunc<T>) {
-    this.middleware.push(func)
+  addMiddleware(func: MiddlewareFunc<T>, properties?: string[]) {
+    this.middleware.push({ func, properties })
   }
 
   removeMiddleware(func: MiddlewareFunc<T>) {
-    this.middleware = this.middleware.filter((f) => f !== func)
+    this.middleware = this.middleware.filter(
+      (middleware) => middleware.func !== func
+    )
   }
 
-  reset() {
-    STORE[this.idx] = this.initialState
+  runMiddleware(
+    newState: Draft<T>,
+    patches: Patch[],
+    actionType?: string
+  ): Draft<T> | false {
+    const changes = patches.map((patch) => String(patch.path[0]))
+
+    if (changes.length === 0) return newState
+
+    for (const middleware of this.middleware) {
+      if (
+        middleware.properties === undefined ||
+        middleware.properties.some((property) => changes.includes(property))
+      ) {
+        const middlewareResult = middleware.func(newState, actionType)
+        if (middlewareResult === false) return false
+        if (middlewareResult === true || middlewareResult === undefined)
+          continue
+        newState = middlewareResult
+      }
+    }
+
+    return newState
   }
 
-  subscribe(func: ListenerFunc<T>, properties?: Extract<keyof T, string>[]) {
+  reset(force?: boolean): boolean {
+    let wasMiddlewareSuccessful = true
+    const newState = produce<T>(this.initialState, (draft) => {
+      for (const middleware of this.middleware) {
+        const middlewareResult = middleware.func(draft, 'LACER_RESET')
+        if (middlewareResult === false && !force) {
+          wasMiddlewareSuccessful = false
+          return
+        }
+      }
+    })
+    if (!wasMiddlewareSuccessful) return false
+    STORE[this.idx] = newState
+    return true
+  }
+
+  subscribe(
+    func: ListenerFunc<T>,
+    properties?: Extract<keyof T, string>[]
+  ): ListenerUnsubscriberFunc {
     this.listeners.push({
       func,
       properties,
     })
+    return () => this.unsubscribe(func)
   }
 
-  unsubscribe(func: ListenerFunc<T>) {
+  unsubscribe(func: ListenerFunc<T>): void {
     this.listeners = this.listeners.filter((listener) => listener.func !== func)
   }
 
   runListeners(state: T, oldState: T, patches: Patch[]) {
     const changes = patches.map((patch) => String(patch.path[0]))
 
-    if (changes.length === 0) return;
+    if (changes.length === 0) return
 
     for (const listener of this.listeners) {
       if (listener.properties === undefined)

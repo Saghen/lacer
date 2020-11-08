@@ -6,15 +6,9 @@ test('CounterStore actions with middleware', () => {
   const CounterStore = new Store<ICounterState>({ count: 0 }, 'Counter')
 
   // Setting a condition to prevent count from going below 0 when `actionType` is `Decrement`
-  CounterStore.addMiddleware((state, actionType) => {
-    if (state.count < 0 && actionType === 'Decrement') {
-      // Returning a falsy value will prevent the state from changing
-      return false
-    }
-
-    // For every other `actionTypes` such as `SudoDecrement` will change the state
-    return state
-  })
+  CounterStore.addMiddleware(
+    (state, actionType) => !(state.count < 0 && actionType === 'Decrement')
+  )
 
   // Implementing some actions to update the store
   const increment = () => CounterStore.set((prev) => prev.count++, 'Increment')
@@ -50,15 +44,9 @@ test('TestStore actions with middleware', () => {
   const TestStore = new Store({ count: 0, toggle: false })
 
   // Setting a middleware to prevent count from going below 0 when `actionType` is `Decrement`
-  TestStore.addMiddleware((state, actionType) => {
-    if (state.count < 0 && actionType === 'Decrement') {
-      // Returning a falsy value will prevent the state from changing
-      return false
-    }
-
-    // For every other `actionTypes` such as `SudoDecrement` will change the state
-    return state
-  })
+  TestStore.addMiddleware(
+    (state, actionType) => !(state.count < 0 && actionType === 'Decrement')
+  )
 
   // Implementing some actions to update the store
   const decrement = () => TestStore.set((prev) => prev.count--, 'Decrement')
@@ -78,15 +66,8 @@ test('TestStore actions with remove middleware', () => {
   const TestStore = new Store<ICounterState>({ count: 0 })
 
   // Setting a middleware to prevent count from going below 0 when `actionType` is `Decrement`
-  const middleware = (state, actionType) => {
-    if (state.count < 0 && actionType === 'Decrement') {
-      // Returning a falsy value will prevent the state from changing
-      return false
-    }
+  const middleware = (state, actionType) => !(state.count < 0 && actionType === 'Decrement')
 
-    // For every other `actionTypes` such as `SudoDecrement` will change the state
-    return state
-  }
   TestStore.addMiddleware(middleware)
   TestStore.removeMiddleware(middleware)
 
