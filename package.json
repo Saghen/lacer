@@ -1,10 +1,10 @@
 {
   "name": "lacer",
-  "version": "0.0.1-rc2",
+  "version": "0.0.1-rc3",
   "description": "Simple and powerful state management for any application",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
-  "repository": "https://github.com/Saghen/lese.git",
+  "repository": "https://github.com/Saghen/lacer.git",
   "author": "Liam Dyer",
   "license": "MIT",
   "scripts": {
