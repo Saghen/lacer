@@ -5,7 +5,7 @@
 # Lacer
 <p align="center">
   <img src="https://img.shields.io/static/v1?label=build&message=passing&color=success&style=flat-square">
-  <img src="https://img.shields.io/static/v1?label=version&message=0.0.1-rc3&color=blue&style=flat-square">
+  <img src="https://img.shields.io/static/v1?label=version&message=0.0.1-rc4&color=blue&style=flat-square">
 </p>
 
 Very simple and powerful state management solution for any application built on Laco and Immer.

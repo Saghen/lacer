@@ -1,6 +1,6 @@
 {
   "name": "lacer",
-  "version": "0.0.1-rc3",
+  "version": "0.0.1-rc4",
   "description": "Simple and powerful state management for any application",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
