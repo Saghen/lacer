@@ -24,7 +24,8 @@ export type ReplaceStateFunc<T> = (state: T) => T
 
 // Middleware Types
 export type MiddlewareFunc<T> = (
-  state: Draft<T>,
+  state: T,
+  draft: Draft<T>,
   actionType?: string
 ) => boolean | undefined
 export interface IMiddleware<T> {
@@ -89,7 +90,12 @@ export class Store<T> {
     newState = produce<T>(
       newState,
       (draft) => {
-        const middlewareResult = this.runMiddleware(draft, changes, actionType)
+        const middlewareResult = this.runMiddleware(
+          newState,
+          draft,
+          changes,
+          actionType
+        )
         if (middlewareResult === false) {
           wasMiddlewareSuccessful = false
           return
@@ -124,7 +130,7 @@ export class Store<T> {
     let wasMiddlewareSuccessful = true
     newState = produce<T>(newState, (draft) => {
       for (const middleware of this.middleware) {
-        const middlewareResult = middleware.func(draft, actionType)
+        const middlewareResult = middleware.func(newState, draft, actionType)
         if (middlewareResult === false) {
           wasMiddlewareSuccessful = false
           return
@@ -162,35 +168,37 @@ export class Store<T> {
   }
 
   runMiddleware(
-    newState: Draft<T>,
+    state: T,
+    draft: Draft<T>,
     patches: Patch[],
     actionType?: string
-  ): Draft<T> | false {
+  ): boolean {
     const changes = patches.map((patch) => String(patch.path[0]))
 
-    if (changes.length === 0) return newState
+    if (changes.length === 0) return true
 
     for (const middleware of this.middleware) {
       if (
         middleware.properties === undefined ||
         middleware.properties.some((property) => changes.includes(property))
       ) {
-        const middlewareResult = middleware.func(newState, actionType)
+        const middlewareResult = middleware.func(state, draft, actionType)
         if (middlewareResult === false) return false
-        if (middlewareResult === true || middlewareResult === undefined)
-          continue
-        newState = middlewareResult
       }
     }
 
-    return newState
+    return true
   }
 
   reset(force?: boolean): boolean {
     let wasMiddlewareSuccessful = true
     const newState = produce<T>(this.initialState, (draft) => {
       for (const middleware of this.middleware) {
-        const middlewareResult = middleware.func(draft, 'LACER_RESET')
+        const middlewareResult = middleware.func(
+          this.initialState,
+          draft,
+          'LACER_RESET'
+        )
         if (middlewareResult === false && !force) {
           wasMiddlewareSuccessful = false
           return

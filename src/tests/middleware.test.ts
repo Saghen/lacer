@@ -7,7 +7,7 @@ test('CounterStore actions with middleware', () => {
 
   // Setting a condition to prevent count from going below 0 when `actionType` is `Decrement`
   CounterStore.addMiddleware(
-    (state, actionType) => !(state.count < 0 && actionType === 'Decrement')
+    (state, _, actionType) => !(state.count < 0 && actionType === 'Decrement')
   )
 
   // Implementing some actions to update the store
@@ -45,7 +45,7 @@ test('TestStore actions with middleware', () => {
 
   // Setting a middleware to prevent count from going below 0 when `actionType` is `Decrement`
   TestStore.addMiddleware(
-    (state, actionType) => !(state.count < 0 && actionType === 'Decrement')
+    (state, _, actionType) => !(state.count < 0 && actionType === 'Decrement')
   )
 
   // Implementing some actions to update the store
@@ -66,7 +66,8 @@ test('TestStore actions with remove middleware', () => {
   const TestStore = new Store<ICounterState>({ count: 0 })
 
   // Setting a middleware to prevent count from going below 0 when `actionType` is `Decrement`
-  const middleware = (state, actionType) => !(state.count < 0 && actionType === 'Decrement')
+  const middleware = (state, actionType) =>
+    !(state.count < 0 && actionType === 'Decrement')
 
   TestStore.addMiddleware(middleware)
   TestStore.removeMiddleware(middleware)
