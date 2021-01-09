@@ -16,7 +16,7 @@ Set up your stores and subscribe to them. Easy as that!
 
 ## Summary
 - :rocket: Simple to use
-- :tada: Lightweight (<2kbs gzipped)
+- :tada: Lightweight (<7kbs gzipped)
 - :sparkles: Partial [Redux DevTools Extension](https://github.com/zalmoxisus/redux-devtools-extension) support (time travel thanks to Laco)
 
 ## Example
