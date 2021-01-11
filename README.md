@@ -71,7 +71,7 @@ Returns an object which could be something like `{ count: 0 }` following the exa
 `type SetStateFunc<T> = (state: Draft<T> => void)`
 Technically, this function does allow any value to be returned to allow patterns similar to what you'll see in the example where the assignment is returned. **However, the return value is ignored.**
 
-T inherits from the generic specified during the initalization of the Store. The SetStateFunc provides a `Draft<T>` from Immer. For more information on how to use Immer, [check it out here](https://immerjs.github.io/immer/docs/introduction).
+T inherits from the generic specified during the initialization of the Store. The SetStateFunc provides a `Draft<T>` from Immer. For more information on how to use Immer, [check it out here](https://immerjs.github.io/immer/docs/introduction).
 ```javascript
 // Setting a new state and passing an optional action name "increment"
 Store.set((state) => (state.count++), "increment")
@@ -80,7 +80,7 @@ Store.set((state) => (state.count++), "increment")
 ### `Store.replace(state: ReplaceStateFunc<, info?: String)`
 `type ReplaceStateFunc<T> = (state: T) => T`
 
-T inherits from the generic specified during the initalization of the Store. This function allows you to completely replace the object used in the store and fires all subscription handlers afterwards regardless of the properties they listen to.
+T inherits from the generic specified during the initialization of the Store. This function allows you to completely replace the object used in the store and fires all subscription handlers afterwards regardless of the properties they listen to.
 ```javascript
 // Setting a new state and passing an optional action name "increment"
 Store.replace((state) => { /* return modified state */}, "increment")
